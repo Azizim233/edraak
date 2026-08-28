@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}نەتىجىلىرىم | {{ settings.site_name }}{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'my_enrollments' %}">مېنىڭ كۇرسلىرىم</a>
+                <a href="{% url 'my_grades' %}" style="color: #eab308;">📊 نەتىجىلىرىم</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section style="background: linear-gradient(135deg, #0d5c5f 0%, #083b3e 100%); color: white; padding: 50px 5%;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2.2rem; margin-bottom: 10px;">📊 نەتىجىلىرىم</h1>
+        <p style="color: #cbd5e1;">{{ user.full_name|default:user.username }}</p>
+    </div>
+</section>
+
+<section style="padding: 40px 5%;">
+    <div style="max-width: 900px; margin: 0 auto;">
+
+        <!-- ئومۇمىي ستاتىستىكا -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
+            <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid #0d5c5f;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #0d5c5f;">{{ total_exams }}</div>
+                <div style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">ئىمتىھان سانى</div>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid #3b82f6;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #3b82f6;">{{ overall_percentage }}%</div>
+                <div style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">ئوتتۇرىچە</div>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid #22c55e;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #22c55e;">{{ passed_count }}</div>
+                <div style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">ئۆتكەن</div>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid #ef4444;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #ef4444;">{{ failed_count }}</div>
+                <div style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">قالغان</div>
+            </div>
+        </div>
+
+        <!-- نەتىجىلەر تىزىملىكى -->
+        <h2 style="color: #0d5c5f; font-size: 1.5rem; margin-bottom: 20px; direction: rtl;">📋 ئىمتىھان نەتىجىلىرى</h2>
+
+        {% if results %}
+        <div style="display: flex; flex-direction: column; gap: 15px; direction: rtl;">
+            {% for r in results %}
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; border-right: 4px solid {{ r.get_grade_color }};">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+
+                    <div style="flex: 1; min-width: 250px;">
+                        <h3 style="color: #0d5c5f; font-size: 1.1rem; margin-bottom: 5px;">{{ r.exam.title }}</h3>
+                        <p style="color: #64748b; font-size: 0.85rem;"> {{ r.exam.course.title }}</p>
+                        <p style="color: #94a3b8; font-size: 0.8rem;">📅 {{ r.exam.exam_date|date:"Y-m-d" }}</p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: {{ r.get_grade_color }}; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; margin-bottom: 5px;">
+                            <div style="font-size: 1.8rem; font-weight: bold;">{{ r.get_grade }}</div>
+                        </div>
+                        <div style="font-size: 1.1rem; font-weight: bold; color: #1e293b;">{{ r.score }} / {{ r.exam.total_score }}</div>
+                        <div style="font-size: 0.85rem; color: #64748b;">{{ r.get_percentage }}%</div>
+                    </div>
+
+                    <div>
+                        <span style="display: inline-block; padding: 6px 15px; border-radius: 15px; font-size: 0.85rem; font-weight: bold; color: white; background-color: {% if r.is_passed %}#22c55e{% else %}#ef4444{% endif %};">
+                            {{ r.get_status_text }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if r.note %}
+                <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                    <strong style="color: #0d5c5f; font-size: 0.85rem;">💬 ئوقۇتقۇچى ئىزاھى:</strong>
+                    <p style="color: #475569; font-size: 0.9rem; margin-top: 5px;">{{ r.note }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">📊</div>
+            <h3 style="color: #0d5c5f; margin-bottom: 10px;">تېخى ئىمتىھان نەتىجىسى يوق</h3>
+            <p style="color: #64748b;">ئوقۇتقۇچى ئىمتىھان نەتىجىسى كىرگۈزگەندىن كېيىن بۇ يەردە كۆرۈنىدۇ.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+{% endblock %}

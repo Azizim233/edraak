@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}مېنىڭ كۇرسلىرىم | {{ settings.site_name }}{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'index' %}">باش بەت</a>
+                <a href="{% url 'my_enrollments' %}" style="color: #eab308;">مېنىڭ كۇرسلىرىم</a>
+                <a href="{% url 'my_schedule' %}">📅 دەرس جەدۋىلىم</a>
+                <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                <a href="{% url 'profile' %}">ئارخىپىم</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+<!-- Dashboard Hero -->
+<div class="dashboard-hero">
+    <div class="dashboard-hero-content" style="max-width: 1000px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2.2rem; margin-bottom: 10px;">
+            👋 ئەسسالامۇ ئەلەيكۇم، {{ user.full_name|default:user.username }}
+        </h1>
+        <p style="color: #cbd5e1; font-size: 1.1rem;">كۇرسلىرىڭىزنى بۇ يەردىن باشقۇرالايسىز</p>
+
+        <!-- Stats Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+            <div class="dashboard-stat-card" style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: #eab308;">{{ total }}</div>
+                <div style="color: #cbd5e1; margin-top: 5px;">جەمئىي تىزىملىتىش</div>
+            </div>
+            <div class="dashboard-stat-card" style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: #4ade80;">{{ approved_count }}</div>
+                <div style="color: #cbd5e1; margin-top: 5px;">تەستىقلانغان</div>
+            </div>
+            <div class="dashboard-stat-card" style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: #facc15;">{{ pending_count }}</div>
+                <div style="color: #cbd5e1; margin-top: 5px;">كۈتۈلۈۋاتىدۇ</div>
+            </div>
+            <div class="dashboard-stat-card" style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: #60a5fa;">{{ unread_count }}</div>
+                <div style="color: #cbd5e1; margin-top: 5px;">ئوقۇلمىغان ئۇقتۇرۇش</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications Section -->
+{% with notifications=user.notifications.all|slice:":5" %}
+{% if notifications %}
+<section style="padding: 40px 5%; background: linear-gradient(to bottom, #fff7ed, #f8fafc);">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; direction: rtl;">
+            <h2 style="color: #0d5c5f; font-size: 1.5rem; margin: 0;">
+                🔔 ئۇقتۇرۇشلار
+                {% if unread_count > 0 %}
+                <span class="notification-badge">{{ unread_count }}</span>
+                {% endif %}
+            </h2>
+            {% if unread_count > 0 %}
+            <a href="{% url 'mark_all_notifications_read' %}" style="color: #0d5c5f; font-size: 0.9rem; text-decoration: none; padding: 8px 15px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                ✅ ھەممىنى ئوقۇلدى دەپ بەلگىلە
+            </a>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for notification in notifications %}
+            <div class="enrollment-card" style="background: {% if not notification.is_read %}#f0f9ff{% else %}white{% endif %}; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-right-color: {{ notification.get_color }};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+                            <i class="{{ notification.get_icon }}" style="color: {{ notification.get_color }}; font-size: 1.2rem;"></i>
+                            <h3 style="color: #1e293b; font-size: 1.05rem; margin: 0;">{{ notification.title }}</h3>
+                            {% if not notification.is_read %}
+                            <span style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">يېڭى</span>
+                            {% endif %}
+                        </div>
+                        <p style="color: #475569; font-size: 0.9rem; margin: 0 0 8px 0; line-height: 1.6;">{{ notification.message }}</p>
+                        <small style="color: #94a3b8; font-size: 0.8rem;">{{ notification.created_at|timesince }} ئىلگىرى</small>
+                    </div>
+                    {% if not notification.is_read %}
+                    <a href="{% url 'mark_notification_read' notification.id %}" style="color: #0d5c5f; font-size: 0.85rem; text-decoration: none; white-space: nowrap;">
+                        ✓ ئوقۇدۇم
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endwith %}
+
+<!-- Enrollment List -->
+<section style="padding: 60px 5%;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <h2 style="color: #0d5c5f; font-size: 1.8rem; margin-bottom: 30px; direction: rtl; text-align: right;">
+            📚 تىزىملانغان كۇرسلىرىم
+        </h2>
+
+        {% if enrollments %}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {% for enrollment in enrollments %}
+            <div class="enrollment-card" style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-right-color: {{ enrollment.get_status_color }};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            {% if enrollment.course.emoji %}
+                            <i class="{{ enrollment.course.emoji }}" style="font-size: 2rem; color: #0d5c5f;"></i>
+                            {% endif %}
+                            <h3 style="color: #0d5c5f; font-size: 1.3rem; margin: 0;">
+                                <a href="{% url 'course_detail' enrollment.course.id %}" style="color: #0d5c5f; text-decoration: none;">
+                                    {{ enrollment.course.title }}
+                                </a>
+                            </h3>
+                        </div>
+                        {% if enrollment.course.instructor %}
+                        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 8px;">
+                            👨‍🏫 {{ enrollment.course.instructor.name }}
+                        </p>
+                        {% endif %}
+                        <p style="color: #94a3b8; font-size: 0.85rem;">
+                            📅 تىزىملانغان ۋاقتى: {{ enrollment.created_at|date:"Y-m-d H:i" }}
+                        </p>
+
+                        <!-- Progress Bar -->
+                        {% if enrollment.status == 'approved' %}
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: 100%;"></div>
+                        </div>
+                        <p style="color: #22c55e; font-size: 0.8rem; margin-top: 5px;">✅ كۇرسقا تولۇق قوبۇل قىلىندىڭىز</p>
+                        {% endif %}
+                    </div>
+
+                    <div style="text-align: left; min-width: 150px;">
+                        <span class="status-badge" style="background-color: {{ enrollment.get_status_color }};">
+                            {{ enrollment.get_status_text }}
+                        </span>
+
+                        {% if enrollment.status == 'pending' %}
+                        <div style="margin-top: 15px;">
+                            <a href="javascript:void(0);"
+                               onclick="showConfirm(
+                                   'تىزىملىتىشنى بىكار قىلىش',
+                                   '«{{ enrollment.course.title }}» كۇرسىدىن تىزىملىتىشنى بىكار قىلماقچىمۇ؟',
+                                   function() { window.location.href = '{% url 'cancel_enrollment' enrollment.id %}'; }
+                               );"
+                               style="color: #ef4444; font-size: 0.9rem; text-decoration: none; padding: 8px 15px; border: 1px solid #ef4444; border-radius: 8px; display: inline-block; transition: all 0.3s;">
+                                🗑️ بىكار قىلىش
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if enrollment.message %}
+                <div style="margin-top: 15px; padding: 12px; background: #f0f9ff; border-radius: 8px; font-size: 0.9rem; color: #0d5c5f; border-right: 3px solid #3b82f6;">
+                    💬 {{ enrollment.message }}
+                </div>
+                {% endif %}
+
+                {% if enrollment.teacher_note %}
+                <div style="margin-top: 10px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 0.9rem; color: #92400e; border-right: 3px solid #eab308;">
+                    📝 <strong>ئۇستاز ئىزاھى:</strong> {{ enrollment.teacher_note }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <h3 style="color: #0d5c5f; margin-bottom: 10px;">تېخى ھېچقانداق كۇرسقا تىزىملانمىغانسىز</h3>
+            <p style="color: #64748b; margin-bottom: 25px;">كۇرسلىرىمىزنى كۆرۈپ، ئۆزىڭىزگە ماس كۇرسنى تاللاڭ</p>
+            <a href="{% url 'index' %}#courses" class="btn">كۇرسىلارنى كۆرۈش</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Quick Actions -->
+<section style="padding: 40px 5%; background: #f1f5f9;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h3 style="color: #0d5c5f; margin-bottom: 25px;">تېز ھەرىكەتلەر</h3>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'index' %}#courses" class="quick-action-btn" style="background: #0d5c5f; color: white;">
+                ➕ يېڭى كۇرسقا تىزىملىنىش
+            </a>
+            <a href="{% url 'messages_view' %}" class="quick-action-btn" style="background: #3b82f6; color: white;">
+                📬 ئۇچۇرلار
+            </a>
+            <a href="{% url 'profile' %}" class="quick-action-btn" style="background: #eab308; color: #0f172a;">
+                👤 ئارخىپىمنى تەھرىرلەش
+            </a>
+            <a href="https://wa.me/{{ settings.whatsapp }}" target="_blank" class="quick-action-btn" style="background: #25D366; color: white;">
+                💬 سوئال سوراش
+            </a>
+            <a href="{% url 'my_schedule' %}" class="btn" style="font-size: 0.9rem; padding: 10px 25px; background-color: #8b5cf6; color: white;">📅 دەرس جەدۋىلىم</a>
+            <a href="{% url 'attendance_report' %}" class="btn" style="font-size: 0.9rem; padding: 10px 25px; background-color: #22c55e; color: white;">
+                ✅ ھازىرلىق دوكلاتىم
+            </a>
+            <a href="{% url 'my_grades' %}" class="btn" style="font-size: 0.9rem; padding: 10px 25px; background-color: #3b82f6; color: white;">
+                📊 نەتىجىلىرىم
+            </a>
+            <a href="{% url 'my_certificates' %}" class="btn" style="font-size: 0.9rem; padding: 10px 25px; background-color: #eab308; color: #0f172a;">
+                🎓 گۇۋاھنامىلىرىم
+            </a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ message.subject }} | Edraak Education{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> Edraak Education</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section style="padding: 40px 5%;">
+    <div style="max-width: 700px; margin: 0 auto; direction: rtl;">
+        <a href="{% url 'messages_view' %}" style="color: #0d5c5f; text-decoration: none; display: inline-block; margin-bottom: 20px;">← ئۇچۇرلارغا قايتىش</a>
+
+        <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <h1 style="color: #0d5c5f; font-size: 1.8rem; margin-bottom: 20px;">{{ message.subject }}</h1>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <p style="color: #475569; margin: 0;">
+                        <strong>يوللىغۇچى:</strong> {{ message.sender.full_name|default:message.sender.username }}
+                    </p>
+                    <p style="color: #475569; margin: 5px 0 0 0;">
+                        <strong>قوبۇل قىلغۇچى:</strong> {{ message.receiver.full_name|default:message.receiver.username }}
+                    </p>
+                </div>
+                <small style="color: #94a3b8;">
+                    {{ message.created_at|date:"Y-m-d H:i" }}
+                </small>
+            </div>
+
+            {% if message.course %}
+            <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: #0d5c5f;">
+                📚 مۇناسىۋەتلىك كۇرس: {{ message.course.title }}
+            </div>
+            {% endif %}
+
+            <div style="color: #334155; line-height: 1.8; font-size: 1.05rem;">
+                {{ message.message|linebreaks }}
+            </div>
+
+            <!-- جاۋاب يوللاش -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
+                {% if user == message.receiver %}
+                <a href="{% url 'send_message_to' message.sender.id %}" class="btn" style="font-size: 0.9rem; padding: 10px 20px;">
+                    ↩️ جاۋاب يوللاش
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Edraak Education. All rights reserved.</p>
+</footer>
+{% endblock %}

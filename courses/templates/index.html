@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ settings.site_name }} | {{ settings.site_name_ug }}{% endblock %}
+
+{% block content %}
+<!-- Navigation -->
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu" style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
+            <nav>
+                <a href="#home">باش بەت</a>
+                <a href="#courses">مەۋجۇت سىنىپلار</a>
+                <a href="#team">ئوقۇتقۇچىلار</a>
+                <a href="#reviews">پىكىرلەر</a>
+                <a href="#works">خىزمەتلەر</a>
+                <a href="#about">بىز ھەققىدە</a>
+                <a href="#faq">سوئال-جاۋاب</a>
+                <a href="#contact">ئالاقىلىشىش</a>
+
+                  {% if user.is_authenticated %}
+                    {% if user.is_teacher %}
+                        <a href="{% url 'teacher_dashboard' %}">ئوقۇتقۇچى تاختىسى</a>
+                        <a href="{% url 'teacher_schedule' %}">📅 دەرس جەدۋىلىم</a>
+                    {% else %}
+                        <a href="{% url 'my_enrollments' %}">مېنىڭ كۇرسلىرىم</a>
+                        <a href="{% url 'my_schedule' %}">📅 دەرس جەدۋىلىم</a>
+                    {% endif %}
+                    <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                    <a href="{% url 'profile' %}">ئارخىپىم</a>
+                    <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+                {% else %}
+                    <a onclick="showModal('login')" class="login-nav-btn" style="cursor: pointer;">كىرىش</a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- ==================== -->
+<!-- 📢 ئېلانلار بۆلۈمى (يېڭى) -->
+<!-- ==================== -->
+{% if announcements %}
+<div style="background: #f8fafc; padding: 20px 5%; border-bottom: 1px solid #e2e8f0;">
+    <div style="max-width: 900px; margin: 0 auto; direction: rtl;">
+        {% for announcement in announcements %}
+        <div class="announcement-item" style="background: {{ announcement.get_type_bg }}; border-right: 4px solid {{ announcement.get_type_color }}; border-radius: 12px; padding: 18px 25px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div style="display: flex; align-items: flex-start; gap: 15px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ announcement.get_type_color }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="{{ announcement.get_type_icon }}" style="color: white; font-size: 1.1rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="color: #1e293b; font-size: 1.05rem; margin-bottom: 5px; font-weight: 600;">
+                        {{ announcement.title }}
+                    </h4>
+                    <p style="color: #475569; font-size: 0.95rem; line-height: 1.7; margin: 0;">
+                        {{ announcement.content }}
+                    </p>
+                    {% if announcement.link_url %}
+                    <a href="{{ announcement.link_url }}" target="_blank" style="display: inline-block; margin-top: 10px; color: {{ announcement.get_type_color }}; font-weight: bold; text-decoration: none; font-size: 0.9rem;">
+                        {{ announcement.link_text|default:"تەپسىلاتىنى كۆرۈش" }} ←
+                    </a>
+                    {% endif %}
+                </div>
+                <button onclick="this.closest('.announcement-item').style.display='none'" style="background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.2rem; padding: 5px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+<!-- ==================== -->
+<!-- 📢 ئېلانلار ئاخىرلاشتى -->
+<!-- ==================== -->
+
+<!-- Home/Hero -->
+<section id="home" class="hero">
+    {% if settings.logo %}
+    <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 25px; border-radius: 20px;">
+    {% endif %}
+    <h1>{{ settings.site_name }} <br><span>{{ settings.site_name_ug }}</span></h1>
+    <p>{{ settings.tagline }}</p>
+    <a href="#courses" class="btn">سىنىپلارنى كۆرۈش</a>
+
+    <form action="{% url 'search' %}" method="GET" style="max-width: 500px; margin: 30px auto 0 auto;">
+        <div style="display: flex; background: rgba(255,255,255,0.15); border-radius: 30px; padding: 5px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);">
+            <input type="text" name="q" placeholder="كۇرس ياكى ئۇستاز ئىزدەڭ..." style="flex: 1; border: none; outline: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; direction: rtl; background: transparent; color: white;">
+            <button type="submit" style="background: #eab308; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; color: #0f172a; font-weight: bold;">🔍 ئىزدەش</button>
+        </div>
+    </form>
+</section>
+
+<!-- كۇرسىلار بۆلۈمى -->
+<section id="courses">
+    <h2>نۆۋەتتە بار بولغان سىنىپلىرىمىز</h2>
+    <p class="section-subtitle">ئىدراك مائارىپىدا ھازىر ئاكتىپ داۋاملىشىۋاتقان سىستېمىلىق دەرسلەر ۋە سىنىپلار تىزىملىكى</p>
+
+    <!-- كۇرس سۈزگۈچ -->
+    <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin: 0 auto 40px auto; max-width: 1100px;">
+        <h3 style="color: #0d5c5f; margin-bottom: 20px; font-size: 1.3rem;">🔍 كۇرس ئىزدەش ۋە سۈزۈش</h3>
+
+        <form method="GET" action="{% url 'index' %}#courses" style="direction: rtl;">
+            <div style="margin-bottom: 20px;">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="🔍 كۇرس ئىسمى، ئۇستاز ياكى ئاچقۇچ سۆز كىرگۈزۈڭ..." style="width: 100%; padding: 14px 20px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; color: #475569; font-size: 0.9rem; margin-bottom: 5px; font-weight: 500;">🏷️ كۇرس تىپى</label>
+                    <select name="badge" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem;">
+                        <option value="">ھەممىسى</option>
+                        {% for badge in available_badges %}
+                        <option value="{{ badge }}" {% if badge_filter == badge %}selected{% endif %}>{{ badge }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; color: #475569; font-size: 0.9rem; margin-bottom: 5px; font-weight: 500;">📊 سەۋىيە</label>
+                    <select name="level" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem;">
+                        <option value="">ھەممىسى</option>
+                        {% for level in available_levels %}
+                        <option value="{{ level }}" {% if level_filter == level %}selected{% endif %}>{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; color: #475569; font-size: 0.9rem; margin-bottom: 5px; font-weight: 500;">👥 ياش گۇرۇپپىسى</label>
+                    <select name="age" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem;">
+                        <option value="">ھەممىسى</option>
+                        {% for age in available_ages %}
+                        <option value="{{ age }}" {% if age_filter == age %}selected{% endif %}>{{ age }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; color: #475569; font-size: 0.9rem; margin-bottom: 5px; font-weight: 500;">💰 باھا</label>
+                    <select name="price" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem;">
+                        <option value="">ھەممىسى</option>
+                        <option value="free" {% if price_filter == 'free' %}selected{% endif %}>ھەقسىز</option>
+                        <option value="low" {% if price_filter == 'low' %}selected{% endif %}>ئەرزان → قىممەت</option>
+                        <option value="high" {% if price_filter == 'high' %}selected{% endif %}>قىممەت → ئەرزان</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap;">
+                <button type="submit" class="btn" style="font-size: 0.95rem; padding: 12px 30px;">🔍 سۈزۈش</button>
+                <a href="{% url 'index' %}#courses" class="btn" style="font-size: 0.95rem; padding: 12px 30px; background-color: #f1f5f9; color: #475569;">🔄 ھەممىنى كۆرسەت</a>
+
+                {% if badge_filter or level_filter or age_filter or price_filter or search_query %}
+                <div style="background: #eab308; color: #0f172a; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                    📊 {{ filtered_count }} / {{ total_courses }} كۇرس تېپىلدى
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- كۇرس كارتىلىرى -->
+    <div class="grid-container">
+        {% for course in courses %}
+        <div class="course-card">
+            <div class="course-header">
+                <span class="course-badge">{{ course.badge }}</span>
+                {% if course.emoji %}
+                <div class="course-emoji"><i class="{{ course.emoji }}"></i></div>
+                {% endif %}
+                <a href="{% url 'course_detail' course.id %}" style="text-decoration: none;"><h3>{{ course.title }}</h3></a>
+            </div>
+            <div class="course-details">
+                <p class="course-desc">{{ course.description }}</p>
+                <ul class="course-meta-list">
+                    {% if course.instructor %}<li><strong>مەسئۇل ئۇستاز:</strong> {{ course.instructor.name }}</li>{% endif %}
+                    {% if course.textbook %}<li><strong>ئاساسلىق دەرسلىك:</strong> {{ course.textbook }}</li>{% endif %}
+                    {% if course.age_group %}<li><strong>مۇۋاپىق ياش:</strong> {{ course.age_group }}</li>{% endif %}
+                    {% if course.level %}<li><strong>سەۋىيە تەلەپلىرى:</strong> {{ course.level }}</li>{% endif %}
+                    {% if course.teaching_method %}<li><strong>ئوقۇتۇش شەكلى:</strong> {{ course.teaching_method }}</li>{% endif %}
+                    {% if course.special_features %}<li><strong>ئالاھىدىلىكى:</strong> {{ course.special_features }}</li>{% endif %}
+                </ul>
+            </div>
+            <div class="course-action">
+                {% if user.is_authenticated %}
+                <a href="{% url 'course_detail' course.id %}" class="course-btn">تىزىملىتىشنى سۈرۈشتۈرۈش</a>
+                {% else %}
+                <a onclick="showModal('signup')" class="course-btn" style="cursor: pointer;">تىزىملىتىشنى سۈرۈشتۈرۈش</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="width: 100%; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 5rem; margin-bottom: 20px;">🔍</div>
+            <h3 style="color: #0d5c5f; margin-bottom: 10px;">ماس كېلىدىغان كۇرس تېپىلمىدى</h3>
+            <p style="color: #64748b; margin-bottom: 25px;">سۈزگۈچ شەرتلىرىنى ئۆزگەرتىپ قايتا سىناڭ.</p>
+            <a href="{% url 'index' %}#courses" class="btn">بارلىق كۇرسىلارنى كۆرۈش</a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ئوقۇتقۇچىلار بۆلۈمى -->
+<section id="team" style="background-color: #f1f5f9;">
+    <h2>ئوقۇتقۇچىلار قوشۇنى / Our Team</h2>
+    <p class="section-subtitle">ئوقۇغۇچىلارغا مېھىر-مۇھەببەت ۋە يۇقىرى مەسئۇلىيەت بىلەن بىلىم بېرىدىغان ئۇستازلىرىمىز</p>
+    <div class="grid-container">
+        {% for teacher in teachers %}
+        <div class="team-card">
+            {% if teacher.photo %}
+                <img src="{{ teacher.photo.url }}" alt="{{ teacher.name }}" class="team-avatar">
+            {% elif teacher.emoji %}
+                <div class="team-avatar"><i class="{{ teacher.emoji }}"></i></div>
+            {% else %}
+                <div class="team-avatar"><i class="fas fa-user-tie"></i></div>
+            {% endif %}
+            <h3>{{ teacher.name }}</h3>
+            <div class="role">{{ teacher.role }}</div>
+            <p>{{ teacher.description }}</p>
+            {% if teacher.courses.count > 0 %}
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 0.8rem; color: #64748b;">📚 {{ teacher.courses.count }} كۇرس</div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="color: #64748b;">ھازىرچە ئوقۇتقۇچى يوق.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- پىكىرلەر بۆلۈمى -->
+<section id="reviews">
+    <h2>ئوقۇغۇچىلار ۋە ئاتا-ئانىلار پىكىرى</h2>
+    <p class="section-subtitle">ئىدراك مائارىپى ھەققىدە بىزگە كەلگەن سەمىمىي باھالار</p>
+    <div class="grid-container">
+        {% for review in reviews %}
+        <div class="review-card">
+            <p>{{ review.text }}</p>
+            <div class="review-author">— {{ review.author }}</div>
+        </div>
+        {% empty %}
+        <p style="color: #64748b;">ھازىرچە پىكىر يوق.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- قىلغان خىزمەتلىرىمىز بۆلۈمى -->
+<section id="works" style="padding: 60px 20px; text-align: center; background: white; direction: rtl;">
+    <h2 style="font-size: 2rem; color: #0d5c5f; margin-bottom: 10px; font-weight: bold;">قىلغان خىزمەتلىرىمىز</h2>
+    <p style="color: #64748b; margin-bottom: 30px; font-size: 1.1rem;">ئىدراك مائارىپىدا ئېلىپ بېرىلغان دەرسلىك ۋە پائالىيەتلىرىمىزدىن كۆرۈنۈشلەر</p>
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; max-width: 1100px; margin: 0 auto;">
+        {% for work in works %}
+        <div style="flex: 1; min-width: 280px; max-width: 340px; background: #f8fafc; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: right;">
+            {% if work.image %}
+            <img src="{{ work.image.url }}" alt="{{ work.title }}" style="width: 100%; height: 220px; object-fit: cover; display: block;">
+            {% else %}
+            <div style="width: 100%; height: 220px; background-color: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 3rem;">📚</div>
+            {% endif %}
+            <div style="padding: 15px;">
+                <h3 style="font-size: 1.1rem; color: #0d5c5f; margin-bottom: 5px; font-weight: bold;">{{ work.title }}</h3>
+                <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6;">{{ work.description }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: #64748b;">ھازىرچە خىزمەت يوق.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- بىز ھەققىدە بۆلۈمى -->
+<section id="about" style="background-color: #f1f5f9;">
+    <h2>About Us / بىز ھەققىدە</h2>
+    <div class="about-container">
+        <div class="about-box ug-text">
+            <h3>{{ settings.about_title_ug }}</h3>
+            <p>{{ settings.about_text_ug|linebreaks }}</p>
+        </div>
+        <div class="about-box en-text">
+            <h3>{{ settings.about_title_en }}</h3>
+            <p>{{ settings.about_text_en|linebreaks }}</p>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ بۆلۈمى -->
+<section id="faq" style="background-color: #f1f5f9;">
+    <h2>كۆپ سورىلىدىغان سوئاللار</h2>
+    <p class="section-subtitle">ئوقۇغۇچىلار ۋە ئاتا-ئانىلار كۆپ سورايدىغان سوئاللارغا جاۋابلار</p>
+
+    {% if faqs %}
+    <div style="max-width: 800px; margin: 0 auto; direction: rtl;">
+        {% for faq in faqs %}
+        <div class="faq-item" style="background: white; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0;">
+            <button class="faq-question" onclick="toggleFaq(this)" style="width: 100%; padding: 20px 25px; background: white; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: right; direction: rtl;">
+                <span style="font-size: 1.05rem; color: #1e293b; font-weight: 600; line-height: 1.6; flex: 1;">{{ faq.question }}</span>
+                <span class="faq-icon" style="color: #0d5c5f; font-size: 1.2rem; margin-right: 15px; transition: transform 0.3s; flex-shrink: 0;"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease;">
+                <div style="padding: 0 25px 20px 25px; color: #475569; line-height: 1.9; border-top: 1px dashed #e2e8f0; padding-top: 15px;">{{ faq.answer|linebreaks }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <p style="color: #64748b; margin-bottom: 15px;">سوئالىڭىزغا جاۋاب تاپالمىدىڭىزمۇ؟</p>
+        <a href="#contact" class="btn">📞 بىز بىلەن ئالاقىلىشىڭ</a>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px;">
+        <p style="color: #64748b;">ھازىرچە FAQ قوشۇلمىغان.</p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- ئالاقىلىشىش بۆلۈمى -->
+<section id="contact" class="contact-section">
+    <h2>ئالاقىلىشىش / Contact</h2>
+    <p class="section-subtitle">سۇئاللىرىڭىز ياكى تىزىملىتىش ئېھتىياجىڭىز بولسا بىز بىلەن ئالاقىلىشىڭ</p>
+
+    {% if settings.address %}
+    <p style="color: #475569; margin-bottom: 20px; font-size: 1.05rem;">📍 {{ settings.address }}</p>
+    {% endif %}
+
+    <div class="contact-grid">
+        <a href="https://wa.me/{{ settings.whatsapp }}" target="_blank" class="contact-card-btn btn-whatsapp">
+            <span class="contact-icon-wrapper"><i class="fab fa-whatsapp"></i></span>
+            <span class="contact-title">WhatsApp</span>
+            <span class="contact-detail"><bdo dir="ltr">{{ settings.phone }}</bdo></span>
+        </a>
+
+        <a href="https://t.me/{{ settings.telegram }}" target="_blank" class="contact-card-btn btn-telegram">
+            <span class="contact-icon-wrapper"><i class="fab fa-telegram"></i></span>
+            <span class="contact-title">Telegram</span>
+            <span class="contact-detail"><bdo dir="ltr">@{{ settings.telegram }}</bdo></span>
+        </a>
+
+        <a href="mailto:{{ settings.email }}" class="contact-card-btn btn-email">
+            <span class="contact-icon-wrapper"><i class="fas fa-envelope"></i></span>
+            <span class="contact-title">Email</span>
+            <span class="contact-detail"><bdo dir="ltr">{{ settings.email }}</bdo></span>
+        </a>
+
+        <a href="tel:{{ settings.phone|cut:' ' }}" class="contact-card-btn btn-phone">
+            <span class="contact-icon-wrapper"><i class="fas fa-phone-alt"></i></span>
+            <span class="contact-title">تېلېفون نومۇر</span>
+            <span class="contact-detail"><bdo dir="ltr">{{ settings.phone }}</bdo></span>
+        </a>
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+
+<!-- FAQ JavaScript -->
+<script>
+function toggleFaq(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector('.faq-icon');
+    const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
+
+    document.querySelectorAll('.faq-answer').forEach(function(item) {
+        item.style.maxHeight = '0px';
+    });
+    document.querySelectorAll('.faq-icon').forEach(function(item) {
+        item.style.transform = 'rotate(0deg)';
+    });
+
+    if (!isOpen) {
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+        if (icon) {
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+}
+</script>
+{% endblock %}

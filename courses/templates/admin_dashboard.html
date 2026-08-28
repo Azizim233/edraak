@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin تاختىسى | {{ settings.site_name }}{% endblock %}
+
+{% block content %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;">{{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'index' %}">باش بەت</a>
+                <a href="{% url 'admin_dashboard' %}" style="color: #eab308;">👑 Admin تاختىسى</a>
+                <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                <a href="{% url 'profile' %}">ئارخىپىم</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- Dashboard Header -->
+<section style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 50px 5%;">
+    <div style="max-width: 1100px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2.2rem; margin-bottom: 10px;">👑 Admin تاختىسى</h1>
+        <p style="color: #cbd5e1;">ئەسسالامۇ ئەلەيكۇم، {{ user.full_name|default:user.username }} - سىستېمىنى تولۇق باشقۇرالايسىز</p>
+    </div>
+</section>
+
+<!-- ئومۇمىي ستاتىستىكا -->
+<section style="padding: 40px 5%; background: #f8fafc;">
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; max-width: 1100px; margin: 0 auto;">
+
+        <div style="flex: 1; min-width: 160px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #0d5c5f;">
+            <div style="font-size: 2rem; font-weight: bold; color: #0d5c5f;">{{ total_courses }}</div>
+            <div style="color: #64748b; margin-top: 5px;">📚 كۇرسىلار</div>
+        </div>
+
+        <div style="flex: 1; min-width: 160px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #8b5cf6;">
+            <div style="font-size: 2rem; font-weight: bold; color: #8b5cf6;">{{ total_teachers }}</div>
+            <div style="color: #64748b; margin-top: 5px;">👨‍🏫 ئوقۇتقۇچىلار</div>
+        </div>
+
+        <div style="flex: 1; min-width: 160px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #3b82f6;">
+            <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">{{ total_students }}</div>
+            <div style="color: #64748b; margin-top: 5px;">👨‍🎓 ئوقۇغۇچىلار</div>
+        </div>
+
+        <div style="flex: 1; min-width: 160px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #eab308;">
+            <div style="font-size: 2rem; font-weight: bold; color: #eab308;">{{ pending_enrollments }}</div>
+            <div style="color: #64748b; margin-top: 5px;">⏳ كۈتۈلۈۋاتقان</div>
+        </div>
+
+        <div style="flex: 1; min-width: 160px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #22c55e;">
+            <div style="font-size: 2rem; font-weight: bold; color: #22c55e;">{{ approved_enrollments }}</div>
+            <div style="color: #64748b; margin-top: 5px;">✅ تەستىقلانغان</div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== -->
+<!-- 📊 ANALYTICS CHARTS -->
+<!-- ==================== -->
+<section style="padding: 40px 5%; background: white;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <h2 style="color: #0d5c5f; font-size: 1.8rem; margin-bottom: 30px; text-align: center;">
+            📊 {{ current_year }}-يىللىق ئانالىز
+        </h2>
+
+        <!-- 1-قۇر: ئايلىق تىزىملىتىش (تولۇق كەڭلىك) -->
+        <div style="background: #f8fafc; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
+            <h3 style="color: #0d5c5f; margin-bottom: 20px; font-size: 1.3rem;">
+                📈 ئايلىق تىزىملىتىش سانى ({{ current_year }})
+            </h3>
+            <div style="position: relative; height: 350px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 2-قۇر: 2 چارت يانمۇ-يان -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 25px;">
+
+            <!-- كۇرس بويىچە تەقسىمات -->
+            <div style="background: #f8fafc; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <h3 style="color: #0d5c5f; margin-bottom: 20px; font-size: 1.2rem;">
+                    🥧 كۇرس بويىچە ئوقۇغۇچى تەقسىماتى
+                </h3>
+                <div style="position: relative; height: 320px;">
+                    <canvas id="courseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ھالەت بويىچە تەقسىمات -->
+            <div style="background: #f8fafc; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <h3 style="color: #0d5c5f; margin-bottom: 20px; font-size: 1.2rem;">
+                    📊 تىزىملىتىش ھالىتى
+                </h3>
+                <div style="position: relative; height: 320px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ==================== -->
+<!-- 📊 CHARTS ئاخىرلاشتى -->
+<!-- ==================== -->
+
+<!-- تېز ھەرىكەتلەر -->
+<section style="padding: 30px 5%;">
+    <div style="max-width: 1100px; margin: 0 auto; text-align: center;">
+        <h3 style="color: #0d5c5f; margin-bottom: 20px;">تېز ھەرىكەتلەر</h3>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="/admin/" class="btn" style="font-size: 0.9rem; padding: 10px 20px;">⚙️ Admin Panel</a>
+            <a href="/admin/courses/course/add/" class="btn" style="font-size: 0.9rem; padding: 10px 20px; background-color: #0d5c5f; color: white;">➕ يېڭى كۇرس</a>
+            <a href="/admin/courses/teacher/add/" class="btn" style="font-size: 0.9rem; padding: 10px 20px; background-color: #8b5cf6; color: white;">👨‍🏫 يېڭى ئوقۇتقۇچى</a>
+            <a href="/admin/courses/sitesettings/" class="btn" style="font-size: 0.9rem; padding: 10px 20px; background-color: #3b82f6; color: white;">🔧 توربەت تەڭشەكلىرى</a>
+            <a href="{% url 'messages_view' %}" class="btn" style="font-size: 0.9rem; padding: 10px 20px; background-color: #eab308;">📬 ئۇچۇرلار</a>
+        </div>
+    </div>
+</section>
+
+<!-- كۈتۈلۈۋاتقان تىزىملىتىشلار -->
+<section style="padding: 40px 5%;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <h2 style="color: #0d5c5f; font-size: 1.6rem; margin-bottom: 20px; direction: rtl; text-align: right;">
+            ⏳ كۈتۈلۈۋاتقان تىزىملىتىشلار
+            <span style="background: #eab308; color: white; padding: 3px 12px; border-radius: 15px; font-size: 0.85rem;">{{ pending_enrollments }}</span>
+        </h2>
+
+        {% if pending_list %}
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; direction: rtl;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px; text-align: right; color: #0d5c5f; font-size: 0.85rem;">ئوقۇغۇچى</th>
+                        <th style="padding: 12px; text-align: right; color: #0d5c5f; font-size: 0.85rem;">كۇرس</th>
+                        <th style="padding: 12px; text-align: right; color: #0d5c5f; font-size: 0.85rem;">ئوقۇتقۇچى</th>
+                        <th style="padding: 12px; text-align: right; color: #0d5c5f; font-size: 0.85rem;">ۋاقتى</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in pending_list %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 12px; font-size: 0.9rem;">{{ enrollment.user.full_name|default:enrollment.user.username }}</td>
+                        <td style="padding: 12px; font-size: 0.9rem;">{{ enrollment.course.title }}</td>
+                        <td style="padding: 12px; font-size: 0.9rem;">{{ enrollment.course.instructor.name|default:"-" }}</td>
+                        <td style="padding: 12px; font-size: 0.8rem; color: #94a3b8;">{{ enrollment.created_at|timesince }} ئىلگىرى</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 30px; background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <p style="color: #64748b;">✨ كۈتۈلۈۋاتقان تىزىملىتىش يوق.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ئەڭ ئاكتىپ كۇرسىلار ۋە يېڭى تىزىملىتىشلار -->
+<section style="padding: 40px 5%; background: #f8fafc;">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; gap: 25px; flex-wrap: wrap;">
+
+        <!-- ئەڭ ئاكتىپ كۇرسىلار -->
+        <div style="flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); direction: rtl;">
+            <h3 style="color: #0d5c5f; margin-bottom: 20px; font-size: 1.3rem;">🔥 ئەڭ ئاكتىپ كۇرسىلار</h3>
+            {% for course in active_courses %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px dashed #e2e8f0;">
+                <span style="font-size: 0.9rem; color: #334155;">{{ course.title }}</span>
+                <span style="background: #0d5c5f; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.8rem;">{{ course.enrollment_count }} ئوقۇغۇچى</span>
+            </div>
+            {% empty %}
+            <p style="color: #64748b; font-size: 0.9rem;">كۇرس يوق.</p>
+            {% endfor %}
+        </div>
+
+        <!-- يېڭى تىزىملىتىشلار -->
+        <div style="flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); direction: rtl;">
+            <h3 style="color: #0d5c5f; margin-bottom: 20px; font-size: 1.3rem;">🆕 يېڭى تىزىملىتىشلار</h3>
+            {% for enrollment in recent_enrollments %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px dashed #e2e8f0;">
+                <div>
+                    <div style="font-size: 0.9rem; color: #334155;">{{ enrollment.user.full_name|default:enrollment.user.username }}</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">{{ enrollment.course.title }}</div>
+                </div>
+                <span style="display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; color: white; background-color: {{ enrollment.get_status_color }};">
+                    {{ enrollment.get_status_text }}
+                </span>
+            </div>
+            {% empty %}
+            <p style="color: #64748b; font-size: 0.9rem;">تىزىملىتىش يوق.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+
+<!-- ==================== -->
+<!-- Chart.js Scripts -->
+<!-- ==================== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // سانلىق مەلۇماتلارنى Django دىن ئېلىش
+    const monthlyLabels = {{ monthly_labels|safe }};
+    const monthlyData = {{ monthly_data|safe }};
+    const courseLabels = {{ course_labels|safe }};
+    const courseData = {{ course_data|safe }};
+    const statusPending = {{ status_pending }};
+    const statusApproved = {{ status_approved }};
+    const statusRejected = {{ status_rejected }};
+
+    // ئورتاق تەڭشەكلەر (RTL ئۇيغۇرچە ئۈچۈن)
+    Chart.defaults.font.family = "'Noto Naskh Arabic', 'DM Sans', sans-serif";
+    Chart.defaults.font.size = 13;
+
+    // ====================
+    // 1. 📈 ئايلىق تىزىملىتىش (Line Chart)
+    // ====================
+    const monthlyCtx = document.getElementById('monthlyChart');
+    if (monthlyCtx) {
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'تىزىملىتىش سانى',
+                    data: monthlyData,
+                    borderColor: '#0d5c5f',
+                    backgroundColor: 'rgba(13, 92, 95, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#eab308',
+                    pointBorderColor: '#0d5c5f',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            color: '#0d5c5f',
+                            font: { size: 13, weight: 'bold' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#0d5c5f',
+                        titleColor: '#eab308',
+                        bodyColor: '#ffffff',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return 'تىزىملىتىش: ' + context.parsed.y + ' ئوقۇغۇچى';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: '#64748b'
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#64748b'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ====================
+    // 2. 🥧 كۇرس بويىچە تەقسىمات (Doughnut)
+    // ====================
+    const courseCtx = document.getElementById('courseChart');
+    if (courseCtx) {
+        const courseColors = [
+            '#0d5c5f', '#eab308', '#8b5cf6', '#3b82f6', '#22c55e', '#ef4444'
+        ];
+
+        new Chart(courseCtx, {
+            type: 'doughnut',
+            data: {
+                labels: courseLabels,
+                datasets: [{
+                    data: courseData,
+                    backgroundColor: courseColors,
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#334155',
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ====================
+    // 3. 📊 ھالەت بويىچە تەقسىمات (Bar Chart)
+    // ====================
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'bar',
+            data: {
+                labels: ['⏳ كۈتۈلۈۋاتقان', '✅ تەستىقلانغان', '❌ رەت قىلىنغان'],
+                datasets: [{
+                    label: 'سانى',
+                    data: [statusPending, statusApproved, statusRejected],
+                    backgroundColor: [
+                        'rgba(234, 179, 8, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: [
+                        '#eab308',
+                        '#22c55e',
+                        '#ef4444'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return 'سانى: ' + context.parsed.y + ' تىزىملىتىش';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: '#64748b'
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#334155',
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<style>
+@media (max-width: 768px) {
+    #monthlyChart, #courseChart, #statusChart {
+        max-height: 280px !important;
+    }
+}
+</style>
+{% endblock %}

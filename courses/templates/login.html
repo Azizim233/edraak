@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}كىرىش | Edraak Education{% endblock %}
+
+{% block content %}
+<div class="modal-overlay active" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000;">
+    <div class="login-box">
+        <a href="{% url 'index' %}" class="close-modal" style="position: absolute; top: 15px; left: 15px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; border: none; background: none; text-decoration: none;">&times;</a>
+        <h2>سىستېمىغا كىرىش</h2>
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username">ئېلېكترونلۇق خەت (Email)</label>
+                {{ form.username }}
+            </div>
+            <div class="form-group">
+                <label for="id_password">مەخپىي نومۇر (Password)</label>
+                {{ form.password }}
+            </div>
+            <button type="submit" class="login-submit-btn">كىرىش</button>
+        </form>
+        <div class="login-footer">
+            <p>ھېساباتىڭىز يوقمۇ؟ <a href="{% url 'signup' %}">ھېسابات قۇرۇش</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

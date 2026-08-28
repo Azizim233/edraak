@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}ئوقۇغۇچىلىرىم | Edraak Education{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'teacher_dashboard' %}">ئوقۇتقۇچى تاختىسى</a>
+                <a href="{% url 'teacher_schedule' %}">📅 دەرس جەدۋىلىم</a>
+                <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section style="background: linear-gradient(135deg, #0d5c5f 0%, #083b3e 100%); color: white; padding: 50px 5%;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2rem; margin-bottom: 10px;">👥 ئوقۇغۇچىلىرىم</h1>
+        <p style="color: #cbd5e1;">ئۇچۇر يوللىماقچى بولغان ئوقۇغۇچىنى تاللاڭ</p>
+    </div>
+</section>
+
+<section style="padding: 40px 5%;">
+    <div style="max-width: 800px; margin: 0 auto; direction: rtl;">
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            {% for student in students %}
+            <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; min-width: 250px; flex: 1; max-width: 300px;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 15px auto;">
+                    👤
+                </div>
+                <h3 style="color: #0d5c5f; margin-bottom: 5px;">{{ student.full_name|default:student.username }}</h3>
+                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">
+                    📧 {{ student.email }}
+                </p>
+                <a href="{% url 'send_message_to' student.id %}" class="btn" style="font-size: 0.9rem; padding: 10px 20px;">
+                    ✉️ ئۇچۇر يوللاش
+                </a>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+                <h3 style="color: #0d5c5f; margin-bottom: 10px;">تېخى ئوقۇغۇچىڭىز يوق</h3>
+                <p style="color: #64748b;">ئوقۇغۇچىلار كۇرسلىرىڭىزغا تىزىملانغاندىن كېيىن بۇ يەردە كۆرۈنىدۇ.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Edraak Education. All rights reserved.</p>
+</footer>
+{% endblock %}

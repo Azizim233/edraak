@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}ئىزدەش: {{ query }} | {{ settings.site_name }}{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu" style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
+            <nav>
+                <a href="{% url 'index' %}">باش بەت</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_teacher %}
+                        <a href="{% url 'teacher_dashboard' %}">ئوقۇتقۇچى تاختىسى</a>
+                    {% else %}
+                        <a href="{% url 'my_enrollments' %}">مېنىڭ كۇرسلىرىم</a>
+                    {% endif %}
+                    <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                    <a href="{% url 'profile' %}">ئارخىپىم</a>
+                    <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+                {% else %}
+                    <a onclick="showModal('login')" class="login-nav-btn" style="cursor: pointer;">كىرىش</a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- Search Header -->
+<section style="background: linear-gradient(135deg, #0d5c5f 0%, #083b3e 100%); color: white; padding: 60px 5%;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2rem; margin-bottom: 15px;">🔍 ئىزدەش نەتىجىسى</h1>
+        {% if query %}
+        <p style="color: #cbd5e1; font-size: 1.1rem;">
+            "<strong style="color: #eab308;">{{ query }}</strong>" ئۈچۈن {{ total_results }} نەتىجە تېپىلدى
+        </p>
+        {% else %}
+        <p style="color: #cbd5e1;">ئىزدەيدىغان مەزمۇننى كىرگۈزۈڭ</p>
+        {% endif %}
+
+        <form action="{% url 'search' %}" method="GET" style="max-width: 500px; margin: 25px auto 0 auto;">
+            <div style="display: flex; background: white; border-radius: 30px; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <input type="text" name="q" value="{{ query }}" placeholder="كۇرس ياكى ئۇستاز ئىزدەڭ..." style="flex: 1; border: none; outline: none; padding: 12px 20px; border-radius: 25px; font-size: 1rem; direction: rtl;">
+                <button type="submit" style="background: #eab308; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; color: #0f172a; font-weight: bold; font-size: 1rem;">🔍 ئىزدەش</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% if query %}
+<!-- كۇرس نەتىجىلىرى -->
+{% if courses %}
+<section style="padding: 60px 5%;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <h2 style="color: #0d5c5f; font-size: 1.5rem; margin-bottom: 25px; direction: rtl;">
+            📚 كۇرسىلار ({{ courses|length }})
+        </h2>
+        <div class="grid-container">
+            {% for course in courses %}
+            <div class="course-card">
+                <div class="course-header">
+                    <span class="course-badge">{{ course.badge }}</span>
+                    {% if course.emoji %}
+                    <div class="course-emoji">
+                        <i class="{{ course.emoji }}"></i>
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'course_detail' course.id %}" style="text-decoration: none;">
+                        <h3>{{ course.title }}</h3>
+                    </a>
+                </div>
+                <div class="course-details">
+                    <p class="course-desc">{{ course.description|truncatewords:20 }}</p>
+                    {% if course.instructor %}
+                    <p style="color: #64748b; font-size: 0.85rem; margin-top: 10px;">
+                        👨‍🏫 {{ course.instructor.name }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="course-action">
+                    <a href="{% url 'course_detail' course.id %}" class="course-btn">تەپسىلاتىنى كۆرۈش</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ئوقۇتقۇچى نەتىجىلىرى -->
+{% if teachers %}
+<section style="padding: 60px 5%; background: #f8fafc;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <h2 style="color: #0d5c5f; font-size: 1.5rem; margin-bottom: 25px; direction: rtl;">
+            👨‍🏫 ئوقۇتقۇچىلار ({{ teachers|length }})
+        </h2>
+        <div class="grid-container">
+            {% for teacher in teachers %}
+            <div class="team-card">
+                {% if teacher.photo %}
+                    <img src="{{ teacher.photo.url }}" alt="{{ teacher.name }}" class="team-avatar">
+                {% elif teacher.emoji %}
+                    <div class="team-avatar">
+                        <i class="{{ teacher.emoji }}"></i>
+                    </div>
+                {% else %}
+                    <div class="team-avatar"><i class="fas fa-user-tie"></i></div>
+                {% endif %}
+                <h3>{{ teacher.name }}</h3>
+                <div class="role">{{ teacher.role }}</div>
+                <p>{{ teacher.description|truncatewords:15 }}</p>
+                {% if teacher.courses.count > 0 %}
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 0.8rem; color: #64748b;">
+                    📚 {{ teacher.courses.count }} كۇرس
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ھېچنىمە تېپىلمىسا -->
+{% if not courses and not teachers %}
+<section style="padding: 80px 5%;">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div style="font-size: 5rem; margin-bottom: 20px;">🔍</div>
+        <h2 style="color: #0d5c5f; margin-bottom: 15px;">ھېچنىمە تېپىلمىدى</h2>
+        <p style="color: #64748b; margin-bottom: 25px; line-height: 1.8;">
+            "<strong>{{ query }}</strong>" بىلەن ماس كېلىدىغان كۇرس ياكى ئوقۇتقۇچى تېپىلمىدى.
+            <br>باشقا ئاچقۇچ سۆز بىلەن سىناپ بېقىڭ.
+        </p>
+        <a href="{% url 'index' %}" class="btn">باش بەتكە قايتىش</a>
+    </div>
+</section>
+{% endif %}
+
+{% else %}
+<!-- ئىزدەش سۆزى كىرگۈزۈلمىگەن -->
+<section style="padding: 80px 5%;">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div style="font-size: 5rem; margin-bottom: 20px;">🔍</div>
+        <h2 style="color: #0d5c5f; margin-bottom: 15px;">ئىزدەشنى باشلاڭ</h2>
+        <p style="color: #64748b; margin-bottom: 25px;">
+            يۇقىرىدىكى ئىزدەش قۇتىسىغا كۇرس نامى، ئۇستاز ئىسمى ياكى باشقا ئاچقۇچ سۆز كىرگۈزۈڭ
+        </p>
+        <a href="{% url 'index' %}" class="btn">باش بەتكە قايتىش</a>
+    </div>
+</section>
+{% endif %}
+
+<!-- تېز ئۇلىنىشلار -->
+<section style="padding: 40px 5%; background: #f1f5f9;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h3 style="color: #0d5c5f; margin-bottom: 20px;">كۆپ ئىزدىلىدىغانلار</h3>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'search' %}?q=ئېنگلىز" class="btn" style="font-size: 0.85rem; padding: 8px 20px;">ئېنگلىز تىلى</a>
+            <a href="{% url 'search' %}?q=ئەرەب" class="btn" style="font-size: 0.85rem; padding: 8px 20px;">ئەرەب تىلى</a>
+            <a href="{% url 'search' %}?q=ماتېماتىكا" class="btn" style="font-size: 0.85rem; padding: 8px 20px;">ماتېماتىكا</a>
+            <a href="{% url 'search' %}?q=بالىلار" class="btn" style="font-size: 0.85rem; padding: 8px 20px;">بالىلار</a>
+            <a href="{% url 'search' %}?q=پروگرامما" class="btn" style="font-size: 0.85rem; padding: 8px 20px;">پروگرامما</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}ئۇچۇر يوللاش | Edraak Education{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                {% if user.is_teacher %}
+                    <a href="{% url 'teacher_dashboard' %}">ئوقۇتقۇچى تاختىسى</a>
+                {% else %}
+                    <a href="{% url 'my_enrollments' %}">مېنىڭ كۇرسلىرىم</a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section style="background: linear-gradient(135deg, #0d5c5f 0%, #083b3e 100%); color: white; padding: 50px 5%;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2rem; margin-bottom: 10px;">✉️ ئۇچۇر يوللاش</h1>
+        <p style="color: #cbd5e1;">
+            {% if receiver %}
+            قوبۇل قىلغۇچى: {{ receiver.full_name|default:receiver.username }}
+            {% else %}
+            ئۇچۇر يېزىڭ
+            {% endif %}
+        </p>
+    </div>
+</section>
+
+<section style="padding: 40px 5%;">
+    <div style="max-width: 600px; margin: 0 auto; direction: rtl;">
+        <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <form method="POST" action="{% if receiver %}{% url 'send_message_to' receiver.id %}{% else %}{% url 'send_message' %}{% endif %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label>ماۋزۇ *</label>
+                    <input type="text" name="subject" required placeholder="مەسىلەن: دەرس ھەققىدە سوئال" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;">
+                </div>
+
+                <div class="form-group">
+                    <label>ئۇچۇر *</label>
+                    <textarea name="message" rows="6" required placeholder="ئۇچۇرىڭىزنى يېزىڭ..." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" class="login-submit-btn">📤 يوللاش</button>
+            </form>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="{% url 'messages_view' %}" style="color: #0d5c5f; text-decoration: none; font-size: 0.9rem;">← ئۇچۇرلارغا قايتىش</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Edraak Education. All rights reserved.</p>
+</footer>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% load static %}
+
+<html lang="ug" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ settings.site_name }}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- ↓↓↓ ئۇيغۇرچە فونتلار (Google Fonts) ↓↓↓ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- ↑↑↑ ئۇيغۇرچە فونتلار ↑↑↑ -->
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    {% if messages %}
+    <div id="messageBox">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}
+    {% endblock %}
+
+    <!-- LOGIN/SIGNUP MODAL -->
+    <div class="modal-overlay" id="authModal">
+        <div class="login-box" id="loginFormSection">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2>سىستېمىغا كىرىش</h2>
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="loginEmail">ئېلېكترونلۇق خەت (Email)</label>
+                    <input type="email" name="username" id="loginEmail" required placeholder="example@edraak.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">مەخپىي نومۇر (Password)</label>
+                    <input type="password" name="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="login-submit-btn">كىرىش</button>
+            </form>
+            <div class="login-footer">
+                <!-- ↓↓↓ يېڭى: پارولنى ئۇنتۇدۇم ئۇلىنىشى ↓↓↓ -->
+                <p style="margin-bottom: 8px;">
+                    <a href="{% url 'password_reset' %}" onclick="closeModal()" style="color: #ef4444; font-weight: 500; font-size: 0.9rem;">
+                        🔐 پارولنى ئۇنتۇدۇم؟
+                    </a>
+                </p>
+                <!-- ↑↑↑ پارولنى ئۇنتۇدۇم ئاخىرلاشتى ↑↑↑ -->
+                <p>ھېساباتىڭىز يوقمۇ؟ <a onclick="switchForm('signup')">ھېسابات قۇرۇش</a></p>
+            </div>
+        </div>
+
+        <div class="login-box hidden" id="signupFormSection">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2>يېڭى ھېسابات قۇرۇش / تىزىملىتىش</h2>
+            <form method="POST" action="{% url 'signup' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="signUpName">ئىسمى فامىلىسى</label>
+                    <input type="text" name="full_name" id="signUpName" class="name-input" required placeholder="مەسىلەن: ئەھمەت ھەسەن">
+                </div>
+                <div class="form-group">
+                    <label for="signUpEmail">ئېلېكترونلۇق خەت</label>
+                    <input type="email" name="email" id="signUpEmail" required placeholder="example@edraak.com">
+                </div>
+                <div class="form-group">
+                    <label for="signUpPhone">تېلېفون نومۇرى</label>
+                    <input type="tel" name="phone" id="signUpPhone" required placeholder="+90 5xx xxx xx xx">
+                </div>
+                <div class="form-group">
+                    <label for="signUpTelegram">تېلېگرامما ئادرېسى</label>
+                    <input type="text" name="telegram_id" id="signUpTelegram" required placeholder="@username">
+                </div>
+                <div class="form-group">
+                    <label for="signUpPassword">مەخپىي نومۇر (ئەڭ ئاز 6 ھەرپ)</label>
+                    <input type="password" name="password1" id="signUpPassword" required placeholder="••••••••" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="signUpPassword2">مەخپىي نومۇرنى قايتا كىرگۈزۈڭ</label>
+                    <input type="password" name="password2" id="signUpPassword2" required placeholder="••••••••" minlength="6">
+                </div>
+                <button type="submit" class="login-submit-btn" style="background-color: #eab308; color: #0f172a;">ئۇچۇرلارنى يوللاش</button>
+            </form>
+            <div class="login-footer">
+                <p>ھېساباتىڭىز بارمۇ؟ <a onclick="switchForm('login')">بۇ يەردىن كىرىڭ</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="login-box" style="max-width: 400px; padding: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #eab308;"></i>
+            </div>
+            <h2 id="confirmTitle" style="font-size: 1.3rem; margin-bottom: 15px; text-align: center;">جەزملەشتۈرۈش</h2>
+            <p id="confirmMessage" style="color: #475569; margin-bottom: 25px; text-align: center; line-height: 1.6;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="confirmNo()" style="flex: 1; padding: 12px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">ياق</button>
+                <button onclick="confirmYes()" style="flex: 1; padding: 12px; border: none; background: #ef4444; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">ھەئە</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cache تازىلاش ئۈچۈن version parameter قوشۇلدى -->
+    <script src="{% static 'js/main.js' %}?v=2.0"></script>
+
+    <!-- Debug: JS يۈكلەنگەنلىكىنى تەكشۈرۈش -->
+    <script>
+    console.log('✅ main.js يۈكلەندى');
+    console.log('toggleFaq بارمۇ؟', typeof toggleFaq);
+    console.log('showModal بارمۇ؟', typeof showModal);
+    </script>
+</body>
+</html>

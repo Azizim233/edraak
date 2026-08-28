@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}ھازىرلىق بەلگىلەش | {{ settings.site_name }}{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;">{{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'teacher_dashboard' %}">ئوقۇتقۇچى تاختىسى</a>
+                <a href="{% url 'teacher_schedule' %}">📅 دەرس جەدۋىلىم</a>
+                <a href="{% url 'messages_view' %}">ئۇچۇرلار</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section style="background: linear-gradient(135deg, #0d5c5f 0%, #083b3e 100%); color: white; padding: 50px 5%;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2rem; margin-bottom: 10px;">✅ ھازىرلىق بەلگىلەش</h1>
+        <p style="color: #cbd5e1;">{{ lesson.course.title }} - {{ lesson.title }}</p>
+        <p style="color: #eab308; font-weight: bold;">📅 {{ today|date:"Y-m-d" }}</p>
+    </div>
+</section>
+
+<section style="padding: 40px 5%;">
+    <div style="max-width: 800px; margin: 0 auto;">
+
+        {% if students %}
+        <form method="POST" style="direction: rtl;">
+            {% csrf_token %}
+
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 15px; text-align: right; color: #0d5c5f; font-size: 0.9rem;">ئوقۇغۇچى</th>
+                            <th style="padding: 15px; text-align: center; color: #0d5c5f; font-size: 0.9rem;">ھالەت</th>
+                            <th style="padding: 15px; text-align: right; color: #0d5c5f; font-size: 0.9rem;">ئىزاھات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in students %}
+                        {% with student=enrollment.user %}
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 15px;">
+                                <div style="font-weight: 600; color: #1e293b;">{{ student.full_name|default:student.username }}</div>
+                                <div style="font-size: 0.8rem; color: #94a3b8;">{{ student.email }}</div>
+                            </td>
+                            <td style="padding: 15px; text-align: center;">
+                                <select name="status_{{ student.id }}" style="padding: 8px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">
+                                    <option value="present" {% if existing_attendance|get_item:student.id and existing_attendance|get_item:student.id.status == 'present' %}selected{% endif %}>✅ ھازىر</option>
+                                    <option value="absent" {% if existing_attendance|get_item:student.id and existing_attendance|get_item:student.id.status == 'absent' %}selected{% endif %}>❌ يوق</option>
+                                    <option value="late" {% if existing_attendance|get_item:student.id and existing_attendance|get_item:student.id.status == 'late' %}selected{% endif %}>⏰ كېچىكىپ كەلدى</option>
+                                    <option value="excused" {% if existing_attendance|get_item:student.id and existing_attendance|get_item:student.id.status == 'excused' %}selected{% endif %}>📋 سەۋەبلىك يوق</option>
+                                </select>
+                            </td>
+                            <td style="padding: 15px;">
+                                <input type="text" name="note_{{ student.id }}"
+                                       value="{% if existing_attendance|get_item:student.id %}{{ existing_attendance|get_item:student.id.note }}{% endif %}"
+                                       placeholder="ئىزاھات (ئىختىيارى)"
+                                       style="width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem;">
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button type="submit" class="btn" style="font-size: 1.1rem; padding: 15px 40px; background-color: #22c55e; color: white;">
+                    💾 ھازىرلىقنى ساقلاش
+                </button>
+                <a href="{% url 'teacher_dashboard' %}" class="btn" style="font-size: 1.1rem; padding: 15px 40px; background-color: #f1f5f9; color: #475569;">
+                    ← قايتىش
+                </a>
+            </div>
+        </form>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+            <h3 style="color: #0d5c5f; margin-bottom: 10px;">بۇ كۇرسقا تەستىقلانغان ئوقۇغۇچى يوق</h3>
+            <p style="color: #64748b;">ئوقۇغۇچىلار تىزىملىنىپ تەستىقلانغاندىن كېيىن ھازىرلىق بەلگىلىيەلەيسىز.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}گۇۋاھنامىلىرىم | {{ settings.site_name }}{% endblock %}
+
+{% block content %}
+<header>
+    <div class="navbar">
+        <div class="logo-area">
+            {% if settings.logo %}
+            <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" style="width: 45px; height: 45px; object-fit: contain; border-radius: 8px;">
+            {% endif %}
+            <a href="{% url 'index' %}" class="brand-name" style="text-decoration:none;"> {{ settings.site_name }}</a>
+        </div>
+        <div class="nav-menu">
+            <nav>
+                <a href="{% url 'my_enrollments' %}">مېنىڭ كۇرسلىرىم</a>
+                <a href="{% url 'my_certificates' %}" style="color: #eab308;">🎓 گۇۋاھنامىلىرىم</a>
+                <a href="{% url 'logout' %}" class="login-nav-btn">چىقىش</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section style="background: linear-gradient(135deg, #0d5c5f 0%, #083b3e 100%); color: white; padding: 50px 5%;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1 style="font-size: 2.2rem; margin-bottom: 10px;">🎓 گۇۋاھنامىلىرىم</h1>
+        <p style="color: #cbd5e1;">{{ user.full_name|default:user.username }}</p>
+    </div>
+</section>
+
+<section style="padding: 40px 5%;">
+    <div style="max-width: 900px; margin: 0 auto;">
+
+        {% if certificates %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; direction: rtl;">
+            {% for cert in certificates %}
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 30px; border-top: 4px solid #eab308; text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 15px;">🎓</div>
+                <h3 style="color: #0d5c5f; font-size: 1.2rem; margin-bottom: 10px;">{{ cert.course.title }}</h3>
+
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 5px;">
+                        📋 گۇۋاھنامە نومۇرى: <strong>{{ cert.certificate_number }}</strong>
+                    </p>
+                    <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 5px;">
+                        📅 بېرىلغان ۋاقتى: {{ cert.issue_date|date:"Y-m-d" }}
+                    </p>
+                    {% if cert.course.instructor %}
+                    <p style="color: #64748b; font-size: 0.85rem;">
+                        👨‍🏫 ئوقۇتقۇچى: {{ cert.course.instructor.name }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'download_certificate' cert.id %}" target="_blank" class="btn" style="display: inline-block; background-color: #0d5c5f; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                    🖨️ گۇۋاھنامىنى بېسىش / PDF ساقلاش
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🎓</div>
+            <h3 style="color: #0d5c5f; margin-bottom: 10px;">تېخى گۇۋاھنامىڭىز يوق</h3>
+            <p style="color: #64748b;">كۇرسنى تاماملىغاندىن كېيىن ئوقۇتقۇچى گۇۋاھنامە بېرىدۇ.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<footer>
+    <p>{{ settings.footer_text }}</p>
+</footer>
+{% endblock %}

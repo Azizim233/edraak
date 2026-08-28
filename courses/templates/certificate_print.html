@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ug" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>گۇۋاھنامە - {{ certificate.certificate_number }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Naskh Arabic', Arial, sans-serif;
+            background: #e2e8f0;
+            direction: rtl;
+        }
+
+        .print-instructions {
+            background: #fef3c7;
+            border: 2px solid #eab308;
+            padding: 20px;
+            text-align: center;
+            max-width: 800px;
+            margin: 20px auto;
+            border-radius: 12px;
+        }
+        .print-instructions h3 { color: #92400e; margin-bottom: 10px; }
+        .print-instructions p { color: #78350f; margin-bottom: 15px; }
+        .btn-print {
+            background: #0d5c5f; color: white; padding: 12px 30px;
+            border: none; border-radius: 8px; font-size: 1.1rem;
+            font-weight: bold; cursor: pointer; margin: 5px;
+        }
+        .btn-back {
+            background: #64748b; color: white; padding: 12px 30px;
+            border: none; border-radius: 8px; font-size: 1.1rem;
+            cursor: pointer; text-decoration: none; display: inline-block; margin: 5px;
+        }
+
+        /* ===== گۇۋاھنامە ===== */
+        .cert-page {
+            width: 297mm;
+            height: 210mm;
+            background: #fafaf8;
+            margin: 20px auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* رامكىلار */
+        .border-outer {
+            position: absolute; inset: 8mm;
+            border: 3px solid #0d5c5f;
+        }
+        .border-inner {
+            position: absolute; inset: 12mm;
+            border: 1px solid #eab308;
+        }
+
+        /* ئۈستى بەزەك */
+        .top-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 8mm; background: #0d5c5f;
+        }
+        .bottom-bar {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 8mm; background: #0d5c5f;
+        }
+
+        /* مەزمۇن */
+        .cert-body {
+            position: absolute;
+            inset: 16mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        /* ===== لوگو + ماۋزۇ ===== */
+        .cert-top {
+            flex: 0 0 auto;
+            padding-top: 3mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cert-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 3mm;
+         }
+
+        .cert-org-name {
+            font-size: 11pt;
+            color: #0d5c5f;
+            font-weight: bold;
+            margin-bottom: 3mm;
+            letter-spacing: 1px;
+        }
+
+        .cert-title {
+            font-size: 32pt; color: #0d5c5f;
+            font-weight: bold; line-height: 1.2; margin-bottom: 2mm;
+        }
+        .cert-subtitle {
+            font-size: 10pt; color: #94a3b8;
+            letter-spacing: 3px; font-family: Arial, sans-serif;
+        }
+
+        /* ئوتتۇرا قىسىم */
+        .cert-middle { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        .cert-label {
+            font-size: 11pt; color: #64748b; margin-bottom: 4mm;
+        }
+        .cert-student {
+            font-size: 26pt; color: #1e293b; font-weight: bold;
+            border-bottom: 2px solid #eab308;
+            padding-bottom: 3mm; margin-bottom: 6mm;
+            min-width: 160mm; display: inline-block;
+        }
+        .cert-course {
+            font-size: 13pt; color: #334155; line-height: 1.6; margin-bottom: 5mm;
+        }
+        .cert-details {
+            font-size: 10pt; color: #64748b; line-height: 1.8;
+        }
+
+        /* ئاستى قىسىم - ئىمزا + نومۇر */
+        .cert-bottom {
+            flex: 0 0 auto;
+            width: 100%;
+            padding-top: 5mm;
+        }
+
+        .sig-row {
+            display: flex; justify-content: space-between;
+            padding: 0 15mm; margin-bottom: 5mm;
+        }
+        .sig-box { text-align: center; width: 75mm; }
+        .sig-line { border-bottom: 1.5px solid #334155; margin-bottom: 2mm; }
+        .sig-name { font-size: 10pt; color: #334155; font-weight: bold; }
+        .sig-role { font-size: 9pt; color: #64748b; }
+
+        /* ئىككى تەرەپ تەپسىلات */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 15mm;
+            margin-bottom: 4mm;
+        }
+        .info-box {
+            font-size: 10pt;
+            color: #475569;
+            width: 75mm;
+            text-align: center;
+        }
+
+        .cert-number {
+            font-size: 8pt; color: #94a3b8;
+            font-family: monospace; text-align: center;
+        }
+
+        /* ===== بېسىش ===== */
+        @media print {
+            body { background: white; }
+            .print-instructions { display: none !important; }
+            .cert-page {
+                margin: 0; box-shadow: none;
+                width: 297mm; height: 210mm;
+            }
+            @page { size: A4 landscape; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- بېسىش كۆرسەتمىسى -->
+    <div class="print-instructions">
+        <button onclick="window.print()" class="btn-print">🖨️ ھازىر بېسىش / PDF ساقلاش</button>
+        <a href="{% url 'my_certificates' %}" class="btn-back">← قايتىش</a>
+    </div>
+
+    <!-- گۇۋاھنامە -->
+    <div class="cert-page">
+        <div class="top-bar"></div>
+        <div class="bottom-bar"></div>
+        <div class="border-outer"></div>
+        <div class="border-inner"></div>
+
+        <div class="cert-body">
+
+            <!-- ئۈستى: لوگو + ماۋزۇ -->
+            <div class="cert-top">
+                {% if settings.logo %}
+                <img src="{{ settings.logo.url }}" alt="{{ settings.site_name }}" class="cert-logo">
+                {% endif %}
+                <div class="cert-org-name">{{ settings.site_name }}</div>
+                <div class="cert-title">گۇۋاھنامە</div>
+                <div class="cert-subtitle">CERTIFICATE OF COMPLETION</div>
+            </div>
+
+            <!-- ئوتتۇرا: ئوقۇغۇچى + كۇرس -->
+            <div class="cert-middle">
+                <div class="cert-label">بۇ گۇۋاھنامە تۆۋەندىكى ئوقۇغۇچىغا بېرىلدى</div>
+                <div class="cert-student">{{ certificate.student.full_name|default:certificate.student.username }}</div>
+                <div class="cert-course">«{{ certificate.course.title }}» كۇرسىنى مۇۋەپپەقىيەتلىك تاماملىدى</div>
+
+                {% if certificate.course.duration %}
+                <div class="cert-details">
+                    ⏱️ كۇرس داۋاملىقى: {{ certificate.course.duration }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ئاستى: ئىمزا + تەپسىلات + نومۇر -->
+            <div class="cert-bottom">
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <div class="sig-line"></div>
+                        {% if certificate.course.instructor %}
+                        <div class="sig-name">{{ certificate.course.instructor.name }}</div>
+                        {% else %}
+                        <div class="sig-name">&nbsp;</div>
+                        {% endif %}
+                        <div class="sig-role">ئوقۇتقۇچى</div>
+                    </div>
+                    <div class="sig-box">
+                        <div class="sig-line"></div>
+                        <div class="sig-name">مۇدىر</div>
+                        <div class="sig-role">{{ settings.site_name_ug|default:settings.site_name }}</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-box">
+                         ئوقۇتقۇچى: {{ certificate.course.instructor.name|default:"-" }}
+                    </div>
+                    <div class="info-box">
+                         بېرىلگەن ۋاقتى: {{ certificate.issue_date|date:"Y-m-d" }}
+                    </div>
+                </div>
+
+                <div class="cert-number">گۇۋاھنامە نومۇرى: {{ certificate.certificate_number }}</div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
