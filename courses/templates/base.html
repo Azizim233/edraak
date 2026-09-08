@@ -2,21 +2,27 @@
 <html lang="ug" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <!-- PWA مېتا تەڭشەكلىرى -->
-    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <title>{% block title %}{{ settings.site_name }}{% endblock %}</title>
+
+    <!-- ✅ PWA مېتا تەڭشەكلىرى (توغرا يولدا) -->
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0d5c5f">
+    <meta name="description" content="تولۇق ئوقۇش باشقۇرۇش سىستېمىسى">
+
+    <!-- ✅ iOS Safari PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ئىدراك">
-    <meta name="description" content="تولۇق ئوقۇش باشقۇرۇش سىستېمىسى">
+    <meta name="mobile-web-app-capable" content="yes">
 
-    <!-- Icons -->
-    <link rel="icon" type="image/png" href="{% static 'icons/icon-192x192.png' %}">
-    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
-
-    <title>{% block title %}{{ settings.site_name }}{% endblock %}</title>
+    <!-- ✅ Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/static/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
 
     <!-- Bootstrap RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
@@ -63,13 +69,11 @@
                 <button type="submit" class="login-submit-btn">كىرىش</button>
             </form>
             <div class="login-footer">
-                <!-- ↓↓↓ يېڭى: پارولنى ئۇنتۇدۇم ئۇلىنىشى ↓↓↓ -->
                 <p style="margin-bottom: 8px;">
                     <a href="{% url 'password_reset' %}" onclick="closeModal()" style="color: #ef4444; font-weight: 500; font-size: 0.9rem;">
                         🔐 پارولنى ئۇنتۇدۇم؟
                     </a>
                 </p>
-                <!-- ↑↑↑ پارولنى ئۇنتۇدۇم ئاخىرلاشتى ↑↑↑ -->
                 <p>ھېساباتىڭىز يوقمۇ؟ <a onclick="switchForm('signup')">ھېسابات قۇرۇش</a></p>
             </div>
         </div>
@@ -126,58 +130,164 @@
         </div>
     </div>
 
-    <!-- Cache تازىلاش ئۈچۈن version parameter قوشۇلدى -->
-    <script src="{% static 'js/main.js' %}?v=2.0"></script>
+    <!-- Cache تازىلاش -->
+    <script src="{% static 'js/main.js' %}?v=3.0"></script>
 
-    <!-- Debug: JS يۈكلەنگەنلىكىنى تەكشۈرۈش -->
+    <!-- ✅ PWA Script - تولۇق يېڭىلانغان -->
     <script>
-    console.log('✅ main.js يۈكلەندى');
-    console.log('toggleFaq بارمۇ؟', typeof toggleFaq);
-    console.log('showModal بارمۇ؟', typeof showModal);
-    </script>
+    (function() {
+        'use strict';
 
-    <!-- PWA Service Worker -->
-    <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
-                .then(function(registration) {
-                    console.log('✅ Service Worker رويخەتكە ئېلىندى:', registration.scope);
-                })
-                .catch(function(error) {
-                    console.log('❌ Service Worker خاتالىقى:', error);
-                });
+        // ==========================================
+        // 1. Service Worker رويخەتكە ئېلىش (توغرا scope بىلەن)
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // ✅ مۇھىم: /sw.js دىن رويخەتلىنىدۇ، /static/js/ دىن ئەمەس!
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(registration) {
+                        console.log('✅ Service Worker رويخەتكە ئېلىندى:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Service Worker خاتالىقى:', error);
+                    });
+            });
+        } else {
+            console.warn('⚠️ Service Worker قوللىمايدۇ');
+        }
+
+        // ==========================================
+        // 2. iOS Safari تەكشۈرۈش
+        // ==========================================
+        const isIos = () => {
+            const ua = window.navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(ua);
+        };
+
+        const isInStandaloneMode = () =>
+            ('standalone' in window.navigator) && (window.navigator.standalone);
+
+        // ==========================================
+        // 3. iOS Safari Banner
+        // ==========================================
+        if (isIos() && !isInStandaloneMode()) {
+            console.log('📱 iOS Safari - Add to Home Screen كېرەك');
+
+            setTimeout(function() {
+                showIOSBanner();
+            }, 3000);
+        }
+
+        function showIOSBanner() {
+            // ئەگەر ئاللىبۇرۇن banner بار بولسا
+            if (document.getElementById('ios-install-banner')) return;
+
+            const banner = document.createElement('div');
+            banner.id = 'ios-install-banner';
+            banner.style.cssText = 'position:fixed; bottom:0; left:0; right:0; background:linear-gradient(135deg, #0d5c5f 0%, #1a7a7f 100%); color:white; padding:20px; box-shadow:0 -4px 20px rgba(0,0,0,0.3); z-index:99999; font-family:sans-serif; animation:slideUp 0.5s ease-out;';
+            banner.innerHTML = `
+                <div style="max-width:600px; margin:0 auto; text-align:center;">
+                    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px;">
+                        <img src="/static/icons/icon-192x192.png" style="width:40px; height:40px; border-radius:8px;">
+                        <h3 style="margin:0; font-size:1.1rem;">ئىدراك App نى ئورنىتىڭ</h3>
+                    </div>
+                    <p style="margin:0 0 15px 0; font-size:0.9rem; opacity:0.95; line-height:1.6;">
+                        1️⃣ تۆۋەندىكى <strong>Share</strong> 📤 تۈگمىسىنى بېسىڭ<br>
+                        2️⃣ <strong>"Add to Home Screen"</strong> نى تاللاڭ
+                    </p>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                            style="background:rgba(255,255,255,0.2); color:white; border:2px solid white; padding:8px 20px; border-radius:20px; font-size:0.85rem; cursor:pointer;">
+                        چۈشەندىم
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(banner);
+
+            // 60 سېكۇنتتىن كېيىن يوشۇرۇش
+            setTimeout(function() {
+                if (document.getElementById('ios-install-banner')) {
+                    banner.remove();
+                }
+            }, 60000);
+        }
+
+        // ==========================================
+        // 4. Chrome/Android Install Prompt
+        // ==========================================
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            console.log('✅ beforeinstallprompt چىقتى (Android/Chrome)');
+            e.preventDefault();
+            deferredPrompt = e;
+
+            setTimeout(function() {
+                showAndroidBanner();
+            }, 3000);
         });
-    }
-    </script>
 
-    <!-- Install Prompt (ئىختىيارى) -->
-    <div id="install-prompt" style="display:none; position:fixed; bottom:20px; left:20px; background:#0d5c5f; color:white; padding:15px 25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:9999; cursor:pointer;">
-        📱 App نى ئورنىتىش
-    </div>
+        function showAndroidBanner() {
+            if (document.getElementById('android-install-banner')) return;
 
-    <script>
-    let deferredPrompt;
-    const installPrompt = document.getElementById('install-prompt');
+            const banner = document.createElement('div');
+            banner.id = 'android-install-banner';
+            banner.style.cssText = 'position:fixed; bottom:0; left:0; right:0; background:linear-gradient(135deg, #0d5c5f 0%, #1a7a7f 100%); color:white; padding:20px; box-shadow:0 -4px 20px rgba(0,0,0,0.3); z-index:99999; font-family:sans-serif; animation:slideUp 0.5s ease-out;';
+            banner.innerHTML = `
+                <div style="max-width:600px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:15px;">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <img src="/static/icons/icon-192x192.png" style="width:50px; height:50px; border-radius:10px;">
+                        <div>
+                            <h3 style="margin:0; font-size:1rem;">ئىدراك App</h3>
+                            <p style="margin:5px 0 0 0; font-size:0.8rem; opacity:0.9;">تېخىمۇ تېز ئىشلىتىش</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button id="android-install-btn"
+                                style="background:white; color:#0d5c5f; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer; font-size:0.9rem;">
+                            📲 ئورنىتىش
+                        </button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                style="background:transparent; color:white; border:2px solid white; padding:8px 15px; border-radius:20px; cursor:pointer; font-size:0.85rem;">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(banner);
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installPrompt.style.display = 'block';
+            document.getElementById('android-install-btn').addEventListener('click', async function() {
+                if (!deferredPrompt) return;
 
-        installPrompt.addEventListener('click', async () => {
-            installPrompt.style.display = 'none';
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log('Install choice:', outcome);
-            deferredPrompt = null;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('Install choice:', outcome);
+
+                banner.remove();
+                deferredPrompt = null;
+            });
+        }
+
+        // ==========================================
+        // 5. App ئورنىتىلغاندىن كېيىن
+        // ==========================================
+        window.addEventListener('appinstalled', function() {
+            console.log('✅ PWA مۇۋەپپەقىيەتلىك ئورنىتىلدى!');
+
+            const banners = document.querySelectorAll('[id$="install-banner"]');
+            banners.forEach(function(b) { b.remove(); });
         });
-    });
 
-    window.addEventListener('appinstalled', () => {
-        console.log('✅ PWA ئورنىتىلدى');
-        installPrompt.style.display = 'none';
-    });
+        // ==========================================
+        // 6. CSS Animation قوشۇش
+        // ==========================================
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    })();
     </script>
 </body>
 </html>

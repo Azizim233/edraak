@@ -1,5 +1,5 @@
 {
-  "name": "ئىدراك مائارىپ ",
+  "name": "ئىدراك مائارىپى",
   "short_name": "ئىدراك",
   "description": "تولۇق ئوقۇش باشقۇرۇش سىستېمىسى",
   "start_url": "/",
@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d5c5f",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
   "lang": "ug",
   "dir": "rtl",
   "icons": [
