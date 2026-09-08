@@ -1,0 +1,27 @@
+{
+  "name": "ئىدراك مائارىپ ",
+  "short_name": "ئىدراك",
+  "description": "تولۇق ئوقۇش باشقۇرۇش سىستېمىسى",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d5c5f",
+  "orientation": "portrait-primary",
+  "lang": "ug",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
